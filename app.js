@@ -5,14 +5,14 @@
 
 // ── CONFIG ──────────────────────────────────────
 // 🔧 Replace with your actual keys before deploying
-const SUPABASE_URL  = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON = 'YOUR_ANON_KEY';
-const PAYSTACK_KEY  = 'pk_test_YOUR_PAYSTACK_PUBLIC_KEY';
+const SUPABASE_URL  = 'https://ahfxhjnllrcjleiwbxtn.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoZnhoam5sbHJjamxlaXdieHRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNDA0ODIsImV4cCI6MjA4ODYxNjQ4Mn0.vVwnm1d3XpsbnnVzY5KdXd5nS7-wzSEp4BNzXdwT4YI';
+const PAYSTACK_KEY  = 'pk_live_051bcbe2840110639b09a2ef72b70fdbcf6a6220';
 
 // EmailJS config
-const EMAILJS_SERVICE  = 'YOUR_EMAILJS_SERVICE_ID';
-const EMAILJS_TEMPLATE = 'YOUR_EMAILJS_TEMPLATE_ID';
-const EMAILJS_USER     = 'YOUR_EMAILJS_PUBLIC_KEY';
+const EMAILJS_SERVICE  = 'service_ppwy5d7';
+const EMAILJS_TEMPLATE = 'template_hr5g6jb';
+const EMAILJS_USER     = 'HwyCYMdc8aCYqWOb-';
 
 // ── SUPABASE CLIENT ──────────────────────────────
 const { createClient } = supabase;
