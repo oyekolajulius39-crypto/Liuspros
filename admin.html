@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Lius Pros</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--surface); }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <h2>🔐 Admin Login</h2>
+    <p>Enter the admin password to access the dashboard.</p>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="admin-password" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="login()">Login →</button>
+    <p id="login-error" style="color:var(--danger);font-size:0.875rem;margin-top:0.75rem;display:none">Incorrect password.</p>
+  </div>
+</div>
+
+<!-- ADMIN LAYOUT -->
+<div class="admin-layout" id="admin-app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="admin-logo">⚡ Lius Pros</div>
+    <nav class="admin-nav">
+      <button class="active" onclick="showPanel('dashboard')">📊 Dashboard</button>
+      <button onclick="showPanel('products')">📦 Products</button>
+      <button onclick="showPanel('add-product')">➕ Add Product</button>
+      <button onclick="showPanel('slots')">🔑 Slots</button>
+      <button onclick="showPanel('add-slot')">➕ Add Slot</button>
+      <button onclick="showPanel('orders')">🛒 Orders</button>
+    </nav>
+    <div style="position:absolute;bottom:2rem;left:1.25rem;right:1.25rem">
+      <button class="btn btn-ghost btn-sm" style="width:100%" onclick="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
+      <h1 style="font-size:1.1rem;font-weight:700;color:var(--text-muted)">Admin Panel</h1>
+      <button class="admin-toggle btn btn-ghost btn-sm" id="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard" class="admin-panel active">
+      <div class="panel-header">
+        <h2>Dashboard</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+      <div class="stats-grid" id="dash-stats">
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+        <div class="stat-card skeleton" style="height:100px"></div>
+      </div>
+
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-top:1rem">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Recent Orders</h3>
+        <div id="recent-orders-table"></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS LIST -->
+    <div id="panel-products" class="admin-panel">
+      <div class="panel-header">
+        <h2>Products</h2>
+        <button class="btn btn-primary btn-sm" onclick="showPanel('add-product')">+ Add Product</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Name</th><th>Price</th><th>Available Slots</th><th>Created</th><th>Action</th></tr></thead>
+          <tbody id="products-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD PRODUCT -->
+    <div id="panel-add-product" class="admin-panel">
+      <div class="panel-header"><h2>Add Product</h2></div>
+      <div class="form-card" style="max-width:480px">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="new-product-name" placeholder="e.g. Netflix Premium" />
+        </div>
+        <div class="form-group">
+          <label>Price (₦)</label>
+          <input type="number" id="new-product-price" placeholder="e.g. 2500" min="0" />
+          <div class="form-hint">Monthly price in Naira</div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="addProduct()">Save Product</button>
+      </div>
+    </div>
+
+    <!-- SLOTS LIST -->
+    <div id="panel-slots" class="admin-panel">
+      <div class="panel-header">
+        <h2>Slots</h2>
+        <div style="display:flex;gap:0.5rem">
+          <select id="slot-filter" onchange="filterSlots()" style="padding:0.5rem;border:1.5px solid var(--border);border-radius:8px;font-family:Lexend,sans-serif;font-size:0.875rem">
+            <option value="all">All Slots</option>
+            <option value="available">Available</option>
+            <option value="used">Used</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="showPanel('add-slot')">+ Add Slot</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Product</th><th>Login Email</th><th>Profile</th><th>Status</th><th>Created</th></tr></thead>
+          <tbody id="slots-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD SLOT -->
+    <div id="panel-add-slot" class="admin-panel">
+      <div class="panel-header"><h2>Add Slot</h2></div>
+      <div class="form-card" style="max-width:480px">
+        <div class="form-group">
+          <label>Product</label>
+          <select id="slot-product-select">
+            <option value="">Loading products...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Login Email</label>
+          <input type="email" id="slot-login-email" placeholder="account@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="text" id="slot-login-password" placeholder="account password" />
+        </div>
+        <div class="form-group">
+          <label>Profile Name <span style="color:var(--text-light);font-weight:400">(optional)</span></label>
+          <input type="text" id="slot-profile-name" placeholder="e.g. Profile 3" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="addSlot()">Save Slot</button>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="panel-orders" class="admin-panel">
+      <div class="panel-header">
+        <h2>Orders</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻ Refresh</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Customer</th><th>WhatsApp</th><th>Product</th><th>Payment Ref</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="orders-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  const ADMIN_PASSWORD = 'admin123';
+  let productsCache = [];
+  let slotsCache = [];
+  let ordersCache = [];
+
+  // ── AUTH ──
+  function login() {
+    const pw = document.getElementById('admin-password').value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById('login-modal').style.display = 'none';
+      document.getElementById('admin-app').style.display = 'flex';
+      sessionStorage.setItem('lius_admin', '1');
+      initAdmin();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('lius_admin');
+    location.reload();
+  }
+
+  // Check if already logged in
+  if (sessionStorage.getItem('lius_admin') === '1') {
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('admin-app').style.display = 'flex';
+    initAdmin();
+  }
+
+  function initAdmin() {
+    loadDashboard();
+    loadProducts();
+    loadSlots();
+    loadOrders();
+    loadProductSelect();
+  }
+
+  // ── PANELS ──
+  function showPanel(name) {
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    const btns = document.querySelectorAll('.admin-nav button');
+    const labels = { dashboard: 0, products: 1, 'add-product': 2, slots: 3, 'add-slot': 4, orders: 5 };
+    if (labels[name] !== undefined) btns[labels[name]].classList.add('active');
+  }
+
+  function toggleSidebar() {
+    document.getElementById('admin-sidebar').classList.toggle('open');
+  }
+
+  // ── DASHBOARD ──
+  async function loadDashboard() {
+    try {
+      const [{ count: totalOrders }, { count: totalSlots }, { count: available }, { count: used }] = await Promise.all([
+        db.from('orders').select('*', { count: 'exact', head: true }),
+        db.from('slots').select('*', { count: 'exact', head: true }),
+        db.from('slots').select('*', { count: 'exact', head: true }).eq('status', 'available'),
+        db.from('slots').select('*', { count: 'exact', head: true }).eq('status', 'used')
+      ]);
+
+      document.getElementById('dash-stats').innerHTML = `
+        <div class="stat-card"><div class="label">Total Orders</div><div class="value">${totalOrders || 0}</div></div>
+        <div class="stat-card"><div class="label">Total Slots</div><div class="value">${totalSlots || 0}</div></div>
+        <div class="stat-card"><div class="label" style="color:#2d8a5e">Available Slots</div><div class="value" style="color:#2d8a5e">${available || 0}</div></div>
+        <div class="stat-card"><div class="label" style="color:var(--danger)">Used Slots</div><div class="value" style="color:var(--danger)">${used || 0}</div></div>
+      `;
+
+      // Recent orders
+      const { data: orders } = await db.from('orders').select('*').order('created_at', { ascending: false }).limit(5);
+      renderRecentOrders(orders || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderRecentOrders(orders) {
+    if (orders.length === 0) {
+      document.getElementById('recent-orders-table').innerHTML = '<div class="empty-state"><div class="emoji">📭</div><p>No orders yet.</p></div>';
+      return;
+    }
+    document.getElementById('recent-orders-table').innerHTML = `
+      <table style="width:100%">
+        <thead><tr><th>Customer</th><th>Payment Ref</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          ${orders.map(o => `
+            <tr>
+              <td>${o.customer_email}</td>
+              <td style="font-size:0.8rem;color:var(--text-muted)">${o.payment_reference || '—'}</td>
+              <td><span class="badge badge-success">${o.status}</span></td>
+              <td style="font-size:0.8rem;color:var(--text-muted)">${new Date(o.created_at).toLocaleDateString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // ── PRODUCTS ──
+  async function loadProducts() {
+    try {
+      productsCache = await fetchProducts();
+      const tbody = document.getElementById('products-table-body');
+      if (productsCache.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">No products yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = productsCache.map(p => `
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td>${formatPrice(p.price)}</td>
+          <td>
+            <span class="${p.availableSlots === 0 ? 'badge badge-used' : 'badge badge-success'}">
+              ${p.availableSlots} available
+            </span>
+          </td>
+          <td style="color:var(--text-muted);font-size:0.8rem">${new Date(p.created_at).toLocaleDateString()}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function addProduct() {
+    const name = document.getElementById('new-product-name').value.trim();
+    const price = parseFloat(document.getElementById('new-product-price').value);
+
+    if (!name) { toast('Product name is required.', 'error'); return; }
+    if (!price || price <= 0) { toast('Enter a valid price.', 'error'); return; }
+
+    try {
+      const { error } = await db.from('products').insert([{ name, price }]);
+      if (error) throw error;
+      toast('Product added!', 'success');
+      document.getElementById('new-product-name').value = '';
+      document.getElementById('new-product-price').value = '';
+      await loadProducts();
+      await loadProductSelect();
+    } catch (err) {
+      toast('Failed to add product: ' + err.message, 'error');
+    }
+  }
+
+  async function deleteProduct(id) {
+    if (!confirm('Delete this product? All associated slots must be deleted first.')) return;
+    const { error } = await db.from('products').delete().eq('id', id);
+    if (error) { toast('Failed: ' + error.message, 'error'); return; }
+    toast('Product deleted.', 'success');
+    loadProducts();
+  }
+
+  // ── SLOTS ──
+  async function loadSlots() {
+    try {
+      const { data, error } = await db.from('slots').select('*, products(name)').order('created_at', { ascending: false });
+      if (error) throw error;
+      slotsCache = data || [];
+      renderSlots(slotsCache);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function filterSlots() {
+    const filter = document.getElementById('slot-filter').value;
+    const filtered = filter === 'all' ? slotsCache : slotsCache.filter(s => s.status === filter);
+    renderSlots(filtered);
+  }
+
+  function renderSlots(slots) {
+    const tbody = document.getElementById('slots-table-body');
+    if (slots.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted)">No slots found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = slots.map(s => `
+      <tr>
+        <td><strong>${s.products?.name || '—'}</strong></td>
+        <td>${s.login_email}</td>
+        <td>${s.profile_name || '—'}</td>
+        <td><span class="badge ${s.status === 'available' ? 'badge-available' : 'badge-used'}">${s.status}</span></td>
+        <td style="color:var(--text-muted);font-size:0.8rem">${new Date(s.created_at).toLocaleDateString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadProductSelect() {
+    const { data } = await db.from('products').select('*').order('name');
+    const sel = document.getElementById('slot-product-select');
+    sel.innerHTML = '<option value="">Select a product</option>' + 
+      (data || []).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+
+  async function addSlot() {
+    const productId = document.getElementById('slot-product-select').value;
+    const loginEmail = document.getElementById('slot-login-email').value.trim();
+    const loginPassword = document.getElementById('slot-login-password').value.trim();
+    const profileName = document.getElementById('slot-profile-name').value.trim();
+
+    if (!productId) { toast('Please select a product.', 'error'); return; }
+    if (!loginEmail) { toast('Login email is required.', 'error'); return; }
+    if (!loginPassword) { toast('Password is required.', 'error'); return; }
+
+    try {
+      const { error } = await db.from('slots').insert([{
+        product_id: productId,
+        login_email: loginEmail,
+        login_password: loginPassword,
+        profile_name: profileName || null,
+        status: 'available'
+      }]);
+      if (error) throw error;
+      toast('Slot added!', 'success');
+      document.getElementById('slot-login-email').value = '';
+      document.getElementById('slot-login-password').value = '';
+      document.getElementById('slot-profile-name').value = '';
+      document.getElementById('slot-product-select').value = '';
+      await loadSlots();
+      await loadDashboard();
+    } catch (err) {
+      toast('Failed: ' + err.message, 'error');
+    }
+  }
+
+  // ── ORDERS ──
+  async function loadOrders() {
+    try {
+      const { data, error } = await db.from('orders').select('*, products(name)').order('created_at', { ascending: false });
+      if (error) throw error;
+      ordersCache = data || [];
+      const tbody = document.getElementById('orders-table-body');
+      if (ordersCache.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted)">No orders yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = ordersCache.map(o => `
+        <tr>
+          <td>${o.customer_email}</td>
+          <td>${o.whatsapp || '—'}</td>
+          <td>${o.products?.name || '—'}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted)">${o.payment_reference || '—'}</td>
+          <td><span class="badge badge-success">${o.status}</span></td>
+          <td style="font-size:0.8rem;color:var(--text-muted)">${new Date(o.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+</script>
+</body>
+</html>

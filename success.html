@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Successful — Lius Pros</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lius<span>Pros</span></a>
+    <div class="nav-links">
+      <a href="products.html"><span>Browse More Plans</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="success-page">
+  <div id="no-data" style="display:none;text-align:center">
+    <h2 style="margin-bottom:1rem">No order data found</h2>
+    <p style="color:var(--text-muted);margin-bottom:2rem">This page is only accessible after a successful payment.</p>
+    <a href="products.html" class="btn btn-primary">Browse Plans →</a>
+  </div>
+
+  <div class="success-card" id="success-card" style="display:none">
+    <div class="success-icon">🎉</div>
+    <h2>Payment Successful!</h2>
+    <p>Your login credentials are shown below and have been sent to <strong id="customer-email"></strong></p>
+
+    <div class="credentials-box">
+      <h4>🔑 Your Login Details</h4>
+
+      <div class="cred-row">
+        <span class="cred-label">Product</span>
+        <span class="cred-value" id="cred-product"></span>
+      </div>
+
+      <div class="cred-row">
+        <span class="cred-label">Login Email</span>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span class="cred-value" id="cred-email"></span>
+          <button class="copy-btn" onclick="copyText(document.getElementById('cred-email').textContent, 'Email copied!')">Copy</button>
+        </div>
+      </div>
+
+      <div class="cred-row">
+        <span class="cred-label">Password</span>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span class="cred-value" id="cred-password"></span>
+          <button class="copy-btn" onclick="copyText(document.getElementById('cred-password').textContent, 'Password copied!')">Copy</button>
+        </div>
+      </div>
+
+      <div class="cred-row" id="profile-row">
+        <span class="cred-label">Profile</span>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span class="cred-value" id="cred-profile"></span>
+          <button class="copy-btn" onclick="copyText(document.getElementById('cred-profile').textContent, 'Profile copied!')">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--primary-light);border-radius:var(--radius-sm);padding:1rem;font-size:0.825rem;color:var(--primary-dark);margin-bottom:1.75rem;text-align:left">
+      <strong>📌 Important:</strong> Please save your credentials. A copy has been emailed to you. If you face any issues, contact us on WhatsApp.
+    </div>
+
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+      <a href="products.html" class="btn btn-outline" style="flex:1">Browse More Plans</a>
+      <button class="btn btn-primary" style="flex:1" onclick="window.print()">🖨️ Print Details</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  const data = loadSuccess();
+
+  if (!data) {
+    document.getElementById('no-data').style.display = 'block';
+  } else {
+    document.getElementById('success-card').style.display = 'block';
+    document.getElementById('customer-email').textContent = data.customerEmail || 'your email';
+    document.getElementById('cred-product').textContent = data.productName || '—';
+    document.getElementById('cred-email').textContent = data.loginEmail || '—';
+    document.getElementById('cred-password').textContent = data.loginPassword || '—';
+    document.getElementById('cred-profile').textContent = data.profileName || '—';
+
+    if (!data.profileName) {
+      document.getElementById('profile-row').style.display = 'none';
+    }
+
+    // Clear after viewing so data isn't re-shown on back
+    // (Give user time to copy first — clear on next navigation)
+    setTimeout(() => sessionStorage.removeItem('lius_success'), 60000);
+  }
+</script>
+</body>
+</html>

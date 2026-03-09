@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders — Lius Pros</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lius<span>Pros</span></a>
+    <div class="nav-links">
+      <a href="index.html"><span>Home</span></a>
+      <a href="products.html"><span>Plans</span></a>
+      <a href="dashboard.html" class="active"><span>My Orders</span></a>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="section-inner" style="max-width:700px">
+    <div class="section-header">
+      <h2>My Orders</h2>
+      <p>Enter your email to view your subscription credentials.</p>
+    </div>
+
+    <div class="form-card" style="max-width:100%">
+      <div class="form-group">
+        <label>Your Email Address</label>
+        <input type="email" id="lookup-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')lookupOrders()" />
+      </div>
+      <button class="btn btn-primary btn-full" onclick="lookupOrders()">Find My Orders →</button>
+    </div>
+
+    <div id="orders-result" style="margin-top:2rem"></div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 <strong style="color:var(--primary)">Lius Pros</strong> · All rights reserved</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  async function lookupOrders() {
+    const email = document.getElementById('lookup-email').value.trim();
+    if (!email || !email.includes('@')) {
+      toast('Please enter a valid email.', 'error');
+      return;
+    }
+
+    const container = document.getElementById('orders-result');
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted)"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+
+    try {
+      // Fetch orders with slot and product info
+      const { data: orders, error } = await db
+        .from('orders')
+        .select('*, products(name, price), slots(login_email, login_password, profile_name)')
+        .eq('customer_email', email)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (!orders || orders.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="emoji">📭</div>
+            <p>No orders found for <strong>${email}</strong></p>
+            <a href="products.html" class="btn btn-primary" style="margin-top:1.5rem">Browse Plans →</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;color:var(--text-muted)">
+          Found ${orders.length} order${orders.length > 1 ? 's' : ''} for ${email}
+        </h3>
+        ${orders.map(o => `
+          <div class="product-card" style="margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+              <div>
+                <div style="font-size:1.1rem;font-weight:700">${getIcon(o.products?.name || '')} ${o.products?.name || 'Unknown Plan'}</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem">
+                  Ordered ${new Date(o.created_at).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+              <span class="badge badge-success">${o.status}</span>
+            </div>
+
+            <div class="credentials-box" style="margin-bottom:0">
+              <h4>🔑 Login Details</h4>
+              <div class="cred-row">
+                <span class="cred-label">Email</span>
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                  <span class="cred-value">${o.slots?.login_email || 'Contact support'}</span>
+                  ${o.slots?.login_email ? `<button class="copy-btn" onclick="copyText('${o.slots.login_email}','Email copied!')">Copy</button>` : ''}
+                </div>
+              </div>
+              <div class="cred-row">
+                <span class="cred-label">Password</span>
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                  <span class="cred-value">${o.slots?.login_password || 'Contact support'}</span>
+                  ${o.slots?.login_password ? `<button class="copy-btn" onclick="copyText('${o.slots.login_password}','Password copied!')">Copy</button>` : ''}
+                </div>
+              </div>
+              ${o.slots?.profile_name ? `
+              <div class="cred-row">
+                <span class="cred-label">Profile</span>
+                <span class="cred-value">${o.slots.profile_name}</span>
+              </div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      `;
+    } catch (err) {
+      container.innerHTML = '<p style="color:var(--danger);text-align:center">Error loading orders. Please try again.</p>';
+      console.error(err);
+    }
+  }
+</script>
+</body>
+</html>

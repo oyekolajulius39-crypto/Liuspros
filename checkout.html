@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Lius Pros</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lius<span>Pros</span></a>
+    <div class="nav-links">
+      <a href="index.html"><span>Home</span></a>
+      <a href="products.html"><span>Plans</span></a>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="section-inner" style="max-width:900px">
+    <div style="margin-bottom:1.5rem">
+      <a href="products.html" style="color:var(--text-muted);text-decoration:none;font-size:0.875rem;font-weight:500">← Back to Plans</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:2rem;align-items:start">
+      <!-- FORM -->
+      <div class="form-card" style="max-width:100%">
+        <h2>Complete Your Order</h2>
+        <p class="subtitle">Fill in your details and pay securely via Paystack.</p>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+          <div class="form-hint">Your login credentials will be sent here.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="whatsapp">WhatsApp Number</label>
+          <input type="tel" id="whatsapp" placeholder="+234 801 234 5678" required />
+          <div class="form-hint">For support and updates.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;background:var(--surface);padding:0.875rem 1rem;border-radius:var(--radius-sm)">
+          <span style="font-size:1.4rem">🔒</span>
+          <div>
+            <div style="font-size:0.825rem;font-weight:600">Secured by Paystack</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Your payment info is 100% safe</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg" id="pay-btn" onclick="startPayment()">
+          Pay Now →
+        </button>
+
+        <p style="text-align:center;margin-top:1rem;font-size:0.78rem;color:var(--text-light)">
+          By paying you agree to our <a href="#" style="color:var(--primary)">Terms of Service</a>
+        </p>
+      </div>
+
+      <!-- ORDER SUMMARY -->
+      <div id="summary-col">
+        <div class="form-card">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem">Order Summary</h3>
+          <div id="summary-loading" style="text-align:center;padding:2rem;color:var(--text-muted)">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div id="summary-content" style="display:none">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem">
+              <div id="s-icon" class="product-icon" style="margin:0"></div>
+              <div>
+                <div id="s-name" style="font-weight:700;font-size:1rem"></div>
+                <div style="font-size:0.8rem;color:var(--text-muted)">Shared Plan · 1 Month</div>
+              </div>
+            </div>
+            <div class="order-summary">
+              <div class="order-row">
+                <span>Plan Price</span>
+                <span id="s-price"></span>
+              </div>
+              <div class="order-row">
+                <span>Slots Available</span>
+                <span id="s-slots"></span>
+              </div>
+              <div class="order-row order-total">
+                <span>Total</span>
+                <span id="s-total"></span>
+              </div>
+            </div>
+            <div class="slot-badge available" id="s-badge" style="display:inline-flex;margin-bottom:0"></div>
+          </div>
+          <div id="summary-error" style="display:none;color:var(--danger);font-size:0.875rem;text-align:center;padding:1rem">
+            Product not found. <a href="products.html" style="color:var(--primary)">Browse Plans</a>
+          </div>
+        </div>
+
+        <div class="form-card" style="margin-top:1rem;padding:1.25rem">
+          <div style="display:flex;gap:0.75rem;align-items:flex-start">
+            <span style="font-size:1.3rem">✅</span>
+            <div style="font-size:0.825rem;color:var(--text-muted)">
+              <strong style="color:var(--text);display:block;margin-bottom:0.25rem">Instant Delivery</strong>
+              Login credentials sent to your email immediately after payment.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 <strong style="color:var(--primary)">Lius Pros</strong> · All rights reserved</p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="app.js"></script>
+<script>
+  let currentProduct = null;
+
+  async function loadProduct() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    if (!id) {
+      showSummaryError();
+      return;
+    }
+
+    try {
+      const { data, error } = await db.from('products').select('*').eq('id', id).single();
+      if (error || !data) { showSummaryError(); return; }
+
+      // Get slot count
+      const { data: slots } = await db.from('slots').select('id').eq('product_id', id).eq('status', 'available');
+      data.availableSlots = slots ? slots.length : 0;
+
+      currentProduct = data;
+
+      document.getElementById('summary-loading').style.display = 'none';
+      document.getElementById('summary-content').style.display = 'block';
+
+      document.getElementById('s-icon').textContent = getIcon(data.name);
+      document.getElementById('s-name').textContent = data.name;
+      document.getElementById('s-price').textContent = formatPrice(data.price);
+      document.getElementById('s-total').textContent = formatPrice(data.price);
+      document.getElementById('s-slots').textContent = data.availableSlots;
+      document.getElementById('s-badge').outerHTML = slotBadge(data.availableSlots);
+
+      if (data.availableSlots === 0) {
+        document.getElementById('pay-btn').disabled = true;
+        document.getElementById('pay-btn').textContent = 'Sold Out';
+      }
+    } catch (err) {
+      showSummaryError();
+    }
+  }
+
+  function showSummaryError() {
+    document.getElementById('summary-loading').style.display = 'none';
+    document.getElementById('summary-error').style.display = 'block';
+    document.getElementById('pay-btn').disabled = true;
+  }
+
+  async function startPayment() {
+    const email = document.getElementById('email').value.trim();
+    const whatsapp = document.getElementById('whatsapp').value.trim();
+
+    if (!email || !email.includes('@')) { toast('Please enter a valid email address.', 'error'); return; }
+    if (!whatsapp || whatsapp.length < 7) { toast('Please enter your WhatsApp number.', 'error'); return; }
+    if (!currentProduct) { toast('Product not loaded. Please refresh.', 'error'); return; }
+    if (currentProduct.availableSlots === 0) { toast('Sorry, this plan is sold out.', 'error'); return; }
+
+    const btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    btn.textContent = 'Opening payment...';
+
+    // Save pending data
+    savePending({ email, whatsapp, productId: currentProduct.id, productName: currentProduct.name });
+
+    initiatePaystack({
+      email,
+      amount: currentProduct.price,
+      onSuccess: async (reference) => {
+        btn.textContent = 'Completing order...';
+        try {
+          // Assign slot
+          const slot = await assignSlot(currentProduct.id);
+
+          // Insert order
+          await insertOrder({
+            customerEmail: email,
+            whatsapp,
+            productId: currentProduct.id,
+            slotId: slot.id,
+            paymentReference: reference
+          });
+
+          // Send email
+          try {
+            await sendCredentialEmail({
+              toEmail: email,
+              productName: currentProduct.name,
+              loginEmail: slot.login_email,
+              loginPassword: slot.login_password,
+              profileName: slot.profile_name
+            });
+          } catch (emailErr) {
+            console.warn('Email failed:', emailErr);
+          }
+
+          // Save for success page
+          saveSuccess({
+            productName: currentProduct.name,
+            loginEmail: slot.login_email,
+            loginPassword: slot.login_password,
+            profileName: slot.profile_name,
+            customerEmail: email
+          });
+
+          clearPending();
+          window.location.href = 'success.html';
+        } catch (err) {
+          console.error(err);
+          toast('Payment received but slot assignment failed. Please contact support with ref: ' + reference, 'error');
+          btn.disabled = false;
+          btn.textContent = 'Pay Now →';
+        }
+      },
+      onClose: () => {
+        btn.disabled = false;
+        btn.textContent = 'Pay Now →';
+        toast('Payment cancelled.', 'error');
+      }
+    });
+  }
+
+  loadProduct();
+</script>
+</body>
+</html>

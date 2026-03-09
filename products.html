@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plans — Lius Pros</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lius<span>Pros</span></a>
+    <div class="nav-links">
+      <a href="index.html"><span>Home</span></a>
+      <a href="products.html" class="active"><span>Plans</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<section class="hero" style="padding:4rem 2rem 3rem">
+  <div class="hero-badge">📦 Premium Plans</div>
+  <h1>Choose Your <span class="accent">Subscription</span></h1>
+  <p>All plans include instant credential delivery via email and WhatsApp support.</p>
+</section>
+
+<!-- PRODUCTS -->
+<section class="section" style="padding-top:0">
+  <div class="section-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <div id="plan-count" style="color:var(--text-muted);font-size:0.9rem"></div>
+      <div style="display:flex;gap:0.5rem">
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search plans..." 
+          style="padding:0.55rem 1rem;border:1.5px solid var(--border);border-radius:8px;font-family:Lexend,sans-serif;font-size:0.875rem;outline:none;transition:all 0.2s"
+          onfocus="this.style.borderColor='var(--primary)'"
+          onblur="this.style.borderColor='var(--border)'"
+        />
+      </div>
+    </div>
+    <div class="products-grid" id="all-products">
+      <div class="product-card skeleton" style="height:220px"></div>
+      <div class="product-card skeleton" style="height:220px"></div>
+      <div class="product-card skeleton" style="height:220px"></div>
+      <div class="product-card skeleton" style="height:220px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" style="background:var(--surface);padding:3rem 2rem">
+  <div class="section-inner">
+    <div class="section-header"><h2>Frequently Asked Questions</h2></div>
+    <div style="max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:1rem">
+      <div class="product-card" style="padding:1.25rem 1.5rem">
+        <h4 style="margin-bottom:0.4rem">Is this legal?</h4>
+        <p style="color:var(--text-muted);font-size:0.875rem">We offer family/shared plan slots. Usage is governed by each platform's terms of service.</p>
+      </div>
+      <div class="product-card" style="padding:1.25rem 1.5rem">
+        <h4 style="margin-bottom:0.4rem">How fast do I get my credentials?</h4>
+        <p style="color:var(--text-muted);font-size:0.875rem">Instantly! Within seconds of payment confirmation, your login details are emailed to you.</p>
+      </div>
+      <div class="product-card" style="padding:1.25rem 1.5rem">
+        <h4 style="margin-bottom:0.4rem">What if my credentials stop working?</h4>
+        <p style="color:var(--text-muted);font-size:0.875rem">Contact us on WhatsApp and we'll resolve the issue or provide a replacement within 24hrs.</p>
+      </div>
+      <div class="product-card" style="padding:1.25rem 1.5rem">
+        <h4 style="margin-bottom:0.4rem">What payment methods do you accept?</h4>
+        <p style="color:var(--text-muted);font-size:0.875rem">Debit/credit cards, USSD, bank transfer — all via Paystack's secure checkout.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 <strong style="color:var(--primary)">Lius Pros</strong> · All rights reserved</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  let allProducts = [];
+
+  async function init() {
+    try {
+      allProducts = await fetchProducts();
+      render(allProducts);
+    } catch (err) {
+      document.getElementById('all-products').innerHTML = 
+        '<p style="color:var(--danger);text-align:center;padding:2rem">Failed to load plans. Please refresh.</p>';
+    }
+  }
+
+  function render(products) {
+    const container = document.getElementById('all-products');
+    document.getElementById('plan-count').textContent = `Showing ${products.length} plan${products.length !== 1 ? 's' : ''}`;
+
+    if (products.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><p>No plans match your search.</p></div>';
+      return;
+    }
+    container.innerHTML = products.map(p => renderProductCard(p)).join('');
+  }
+
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    render(allProducts.filter(p => p.name.toLowerCase().includes(q)));
+  });
+
+  init();
+</script>
+</body>
+</html>

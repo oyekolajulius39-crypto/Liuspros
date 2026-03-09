@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lius Pros — Premium Subscriptions at Affordable Prices</title>
+  <meta name="description" content="Get shared premium subscriptions for Netflix, Spotify, YouTube Premium and more at unbeatable prices." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page-loader">Lius Pros</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">Lius<span>Pros</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="active"><span>Home</span></a>
+      <a href="products.html"><span>Plans</span></a>
+      <a href="#how-it-works"><span>How It Works</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🔥 Trusted by 1,000+ Subscribers</div>
+  <h1>Premium Subscriptions at <span class="accent">Affordable Prices</span></h1>
+  <p>Get instant access to Netflix, Spotify, YouTube Premium and more — shared plans that save you up to 80%.</p>
+  <div class="hero-cta">
+    <a href="products.html" class="btn btn-primary btn-lg">View Plans →</a>
+    <a href="#how-it-works" class="btn btn-ghost btn-lg">How It Works</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-number">10+</div>
+      <div class="stat-label">Premium Services</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">80%</div>
+      <div class="stat-label">Average Savings</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">1K+</div>
+      <div class="stat-label">Happy Customers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">⚡</div>
+      <div class="stat-label">Instant Delivery</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS PREVIEW -->
+<section class="section" id="plans">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>Available Plans</h2>
+      <p>Choose from our selection of premium shared subscriptions</p>
+    </div>
+    <div class="products-grid" id="home-products">
+      <!-- skeleton loaders -->
+      <div class="product-card skeleton" style="height:220px"></div>
+      <div class="product-card skeleton" style="height:220px"></div>
+      <div class="product-card skeleton" style="height:220px"></div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem">
+      <a href="products.html" class="btn btn-outline">See All Plans →</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works" style="background:var(--surface)">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>How It Works</h2>
+      <p>Get your subscription in under 2 minutes</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3>Choose a Plan</h3>
+        <p>Browse our plans and pick the subscription you want at the price you love.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <h3>Pay Securely</h3>
+        <p>Complete your payment via Paystack — bank cards, USSD, and bank transfer accepted.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📧</div>
+        <h3>Get Credentials</h3>
+        <p>Login details are sent to your email instantly after a successful payment.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎉</div>
+        <h3>Start Enjoying</h3>
+        <p>Log in and enjoy your premium subscription right away. No hidden charges.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section class="section">
+  <div class="section-inner" style="text-align:center">
+    <h2 style="margin-bottom:1rem">Why Choose Lius Pros?</h2>
+    <p style="color:var(--text-muted);max-width:500px;margin:0 auto 3rem">We've helped thousands of Nigerians access premium content without breaking the bank.</p>
+    <div class="features-grid" style="text-align:left">
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure Payments</h3>
+        <p>All payments powered by Paystack — Nigeria's most trusted payment gateway.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Delivery</h3>
+        <p>No waiting. Credentials delivered to your inbox seconds after payment.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>WhatsApp Support</h3>
+        <p>Got issues? Reach us on WhatsApp and we'll resolve it within minutes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>Regular Renewal</h3>
+        <p>We handle all renewals so your subscription stays active every month.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 <strong style="color:var(--primary)">Lius Pros</strong> · All rights reserved · <a href="#">Terms</a> · <a href="#">Privacy</a></p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  (async () => {
+    try {
+      const products = await fetchProducts();
+      const container = document.getElementById('home-products');
+      const preview = products.slice(0, 4);
+      if (preview.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji">📦</div><p>No plans available yet. Check back soon!</p></div>';
+        return;
+      }
+      container.innerHTML = preview.map(p => renderProductCard(p)).join('');
+    } catch (err) {
+      console.error(err);
+      document.getElementById('home-products').innerHTML = '<p style="color:var(--danger);text-align:center">Failed to load plans.</p>';
+    }
+  })();
+</script>
+</body>
+</html>
